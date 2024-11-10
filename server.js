@@ -2,10 +2,6 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
-//Auth
-const authRoutes = require('./routes/auth');
-app.use('/auth', authRoutes);
-
 // Cargar variables de entorno
 require('dotenv').config();
 
@@ -76,6 +72,10 @@ passport.deserializeUser(async (id, done) => {
     done(err, null);
   }
 });
+
+//Auth (Deben ir despues de passport)
+const authRoutes = require('./routes/auth');
+app.use('/auth', authRoutes);
 
 //Routers
 const customersRoutes =  require('./routes/customers');

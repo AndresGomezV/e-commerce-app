@@ -44,86 +44,62 @@ CREATE TABLE order_items (
     order_price decimal(10,2)
 );
 
--- Insertar datos en la tabla `customers`
-INSERT INTO customers (first_name, last_name, email_address, phone_number, shipping_address)
-VALUES 
-    ('Juan', 'Pérez', 'juan.perez@email.com', '3001234567', 'Calle 123, Bogotá'),
-    ('Ana', 'Gómez', 'ana.gomez@email.com', '3102345678', 'Avenida 456, Medellín'),
-    ('Carlos', 'Martínez', 'carlos.martinez@email.com', '3203456789', 'Carrera 789, Cali');
-
--- Insertar datos en la tabla `payments`
-INSERT INTO payments (payment_amount, payment_timestamp, payment_status)
-VALUES 
-    (150.75, '2024-11-07 10:00:00', 'Completed'),
-    (200.50, '2024-11-07 11:00:00', 'Pending'),
-    (75.00, '2024-11-07 12:00:00', 'Completed');
-
--- Insertar datos en la tabla `orders`
-INSERT INTO orders (customer_id, payment_id, order_timestamp, order_status)
-VALUES 
-    (1, 1, '2024-11-07 10:00:00', 'Shipped'),
-    (2, 2, '2024-11-07 11:00:00', 'Processing'),
-    (3, 3, '2024-11-07 12:00:00', 'Delivered');
-
--- Insertar datos en la tabla `categories`
+-- Insertar en Categories
 INSERT INTO categories (category_name)
 VALUES 
     ('Electronics'),
     ('Clothing'),
-    ('Home & Kitchen');
+    ('Home & Kitchen'),
+    ('Sports & Outdoors'),
+    ('Books'),
+    ('Toys');
 
--- Insertar datos en la tabla `products`
-INSERT INTO products (category_id, product_name, product_price, product_description, product_available)
-VALUES 
-    (1, 'Smartphone', 500.00, 'Smartphone with 64GB storage', TRUE),
-    (2, 'T-Shirt', 20.00, 'Cotton T-Shirt, various sizes', TRUE),
-    (3, 'Blender', 60.00, 'High-speed blender for smoothies', FALSE);
+-- Insertar en Customers
+INSERT INTO customers (first_name, last_name, email_address, phone_number, shipping_address, password, username)
+VALUES
+    ('Juan', 'Pérez', 'juan.perez@example.com', '3001234567', 'Carrera 5 #20-10, Bogotá, Colombia', 'hashedpassword1', 'juanperez'),
+    ('Ana', 'Gómez', 'ana.gomez@example.com', '3002345678', 'Calle 80 #5-30, Medellín, Colombia', 'hashedpassword2', 'anagomez'),
+    ('Carlos', 'Martínez', 'carlos.martinez@example.com', '3003456789', 'Avenida 10 #50-60, Cali, Colombia', 'hashedpassword3', 'carlosmartinez'),
+    ('Marta', 'Rodríguez', 'marta.rodriguez@example.com', '3004567890', 'Carrera 15 #30-40, Barranquilla, Colombia', 'hashedpassword4', 'martarodriguez'),
+    ('Pedro', 'Sánchez', 'pedro.sanchez@example.com', '3005678901', 'Calle 25 #10-20, Cartagena, Colombia', 'hashedpassword5', 'pedrosanchez'),
+    ('Laura', 'López', 'laura.lopez@example.com', '3006789012', 'Avenida 50 #25-35, Bucaramanga, Colombia', 'hashedpassword6', 'lauralopez');
 
--- Insertar datos en la tabla `order_items`
+-- Insertar en Products
+INSERT INTO products (product_name, product_price, product_description, product_available, category_id)
+VALUES
+    ('Smartphone', 500.00, 'High-end smartphone with 128GB storage', true, 1),
+    ('T-Shirt', 20.00, 'Cotton T-shirt, various colors', true, 2),
+    ('Coffee Maker', 45.00, 'Automatic coffee maker with programmable settings', true, 3),
+    ('Yoga Mat', 25.00, 'Non-slip yoga mat', true, 4),
+    ('The Great Gatsby', 15.00, 'Classic novel by F. Scott Fitzgerald', true, 5),
+    ('Action Figure', 10.00, 'Collectible superhero action figure', true, 6);
+
+-- Insertar en Orders
+INSERT INTO orders (customer_id, order_timestamp, order_status, payment_id)
+VALUES
+    (1, '2024-11-01 10:00:00', 'Completed', 1),
+    (2, '2024-11-02 11:00:00', 'Pending', 2),
+    (3, '2024-11-03 12:00:00', 'Shipped', 3),
+    (4, '2024-11-04 13:00:00', 'Completed', 4),
+    (5, '2024-11-05 14:00:00', 'Cancelled', 5),
+    (6, '2024-11-06 15:00:00', 'Shipped', 6);
+
+-- Insertar en Order Items
 INSERT INTO order_items (order_id, product_id, items_quantity, order_price)
-VALUES 
-    (1, 1, 1, 500.00),   -- Pedido 1, Producto 1 (Smartphone)
-    (2, 2, 2, 40.00),    -- Pedido 2, Producto 2 (T-Shirt)
-    (3, 3, 1, 60.00);    -- Pedido 3, Producto 3 (Blender)
+VALUES
+    (1, 1, 1, 500.00),
+    (2, 2, 2, 40.00),
+    (3, 3, 1, 45.00),
+    (4, 4, 1, 25.00),
+    (5, 5, 1, 15.00),
+    (6, 6, 2, 20.00);
 
--- Insertar datos adicionales en la tabla `customers`
-INSERT INTO customers (first_name, last_name, email_address, phone_number, shipping_address)
-VALUES 
-    ('Laura', 'Hernández', 'laura.hernandez@email.com', '3109876543', 'Carrera 101, Bogotá'),
-    ('Miguel', 'Torres', 'miguel.torres@email.com', '3208765432', 'Calle 202, Medellín'),
-    ('Sofía', 'López', 'sofia.lopez@email.com', '3007654321', 'Avenida 303, Cali');
-
--- Insertar datos adicionales en la tabla `payments`
-INSERT INTO payments (payment_amount, payment_timestamp, payment_status)
-VALUES 
-    (300.00, '2024-11-07 13:00:00', 'Completed'),
-    (120.25, '2024-11-07 14:00:00', 'Pending'),
-    (89.99, '2024-11-07 15:00:00', 'Failed');
-
--- Insertar datos adicionales en la tabla `orders`
-INSERT INTO orders (customer_id, payment_id, order_timestamp, order_status)
-VALUES 
-    (4, 4, '2024-11-07 13:00:00', 'Shipped'),
-    (5, 5, '2024-11-07 14:00:00', 'Processing'),
-    (6, 6, '2024-11-07 15:00:00', 'Cancelled');
-
--- Insertar datos adicionales en la tabla `categories`
-INSERT INTO categories (category_name)
-VALUES 
-    ('Sports'),
-    ('Beauty'),
-    ('Books');
-
--- Insertar datos adicionales en la tabla `products`
-INSERT INTO products (category_id, product_name, product_price, product_description, product_available)
-VALUES 
-    (4, 'Tennis Racket', 50.00, 'Professional tennis racket', TRUE),
-    (5, 'Lipstick', 15.00, 'Red lipstick, long-lasting', TRUE),
-    (6, 'Novel', 10.00, 'Best-selling novel', TRUE);
-
--- Insertar datos adicionales en la tabla `order_items`
-INSERT INTO order_items (order_id, product_id, items_quantity, order_price)
-VALUES 
-    (4, 4, 1, 50.00),   -- Pedido 4, Producto 4 (Tennis Racket)
-    (5, 5, 3, 45.00),   -- Pedido 5, Producto 5 (Lipstick)
-    (6, 6, 1, 10.00);   -- Pedido 6, Producto 6 (Novel)
+-- Insertar en Payments
+INSERT INTO payments (payment_method, payment_amount, payment_timestamp, payment_status)
+VALUES
+    ('Credit Card', 500.00, '2024-11-01 10:05:00', 'Completed'),
+    ('PayPal', 40.00, '2024-11-02 11:10:00', 'Pending'),
+    ('Credit Card', 45.00, '2024-11-03 12:15:00', 'Completed'),
+    ('Bank Transfer', 25.00, '2024-11-04 13:20:00', 'Completed'),
+    ('Credit Card', 15.00, '2024-11-05 14:25:00', 'Cancelled'),
+    ('PayPal', 20.00, '2024-11-06 15:30:00', 'Completed');
