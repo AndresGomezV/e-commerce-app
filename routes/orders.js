@@ -13,7 +13,7 @@ function errorHandler(err, req, res, next) {
 // GET /orders: Retrieve all orders from an specific customer
 ordersRoutes.get("/", async (req, res, next) => {
   try {
-    const customer_id = req.user.id; // Suponiendo que el ID del cliente está en req.user.id después de autenticación (con JWT)
+    const customer_id = req.user.id; // Suponiendo que el ID del cliente está en req.user.id después de autenticación (con JWT) **APLICAR**
     let queryText = "SELECT * FROM orders WHERE customer_id = $1";
 
     const result = await query(queryText, [customer_id]);
@@ -156,6 +156,62 @@ ordersRoutes.put("/:id", async (req, res, next) => {
     next(err);
   }
 });
+
+
+// POST /order/:order_id/checkout.
+ordersRoutes.post("/:id/checkout", async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const customer_id = req.user.id;
+
+        // Validar si la orden existe (carrito)
+        let queryText = "SELECT * FROM orders WHERE order_id = $1 AND customer_id = $2";
+        const orderExists = await query(queryText, [id, customer_id]);
+
+        if (orderExists.rows.length === 0) {
+            return res.status(404).json({ message: "Order not found or does not belong to this user" });
+        }
+
+        const order = orderExists.rows[0];
+
+        // Validar disponibilidad del producto
+        queryText = `
+            SELECT oi.product_id, oi.items_quantity, p.product_available 
+            FROM order_items AS oi 
+            JOIN products AS p ON oi.product_id = p.product_id 
+            WHERE oi.order_id = $1
+        `;
+
+        const orderItemsResult = await query(queryText, [id]);
+
+        for (const item of orderItemsResult.rows) {
+            if (item.product_available === false) {
+                return res.status(400).json({ message: `Insufficient stock for product with id ${item.product_id}` });
+            }
+        }
+
+        // Simular el procesamiento del pago
+        const paymentSuccess = true; // Asumimos éxito en el pago
+        if (!paymentSuccess) {
+            return res.status(400).json({ message: "Payment failed. Please try again." });
+        }
+
+        // Actualizar el estado de la orden
+        queryText = `UPDATE orders SET order_status = 'completed' WHERE order_id = $1 RETURNING *`;
+        const updatedOrderResult = await query(queryText, [id]);
+        const updatedOrder = updatedOrderResult.rows[0];
+
+        // Responder al cliente con la orden actualizada
+        res.status(200).json({
+            message: "Checkout successful",
+            order: updatedOrder,
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+
 
 // DELETE /orders/:id: Delete an order.
 ordersRoutes.delete("/:id", async (req, res, next) => {
