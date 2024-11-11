@@ -80,37 +80,50 @@ productsRoutes.post("/", async (req, res, next) => {
 
 // PUT /products/:id: Update an existing product.
 productsRoutes.put("/:id", async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const {
-      product_name,
-      product_price,
-      product_description,
-      product_available,
-      category_id,
-    } = req.body;
-
-    let queryText =
-      "UPDATE products SET product_name = $1, product_price = $2, product_description = $3, product_available = $4, category_id = $5 WHERE product_id = $6 RETURNING *";
-
-    const result = await query(queryText, [
-      product_name,
-      product_price,
-      product_description,
-      product_available,
-      category_id,
-      id,
-    ]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Product not found" });
+    try {
+      const { id } = req.params;
+      const {
+        product_name,
+        product_price,
+        product_description,
+        product_available,
+        category_id,
+      } = req.body;
+  
+      // Verificar si el producto existe
+      let queryText = "SELECT * FROM products WHERE product_id = $1";
+      const productExists = await query(queryText, [id]);
+  
+      if (productExists.rows.length === 0) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+  
+      // Actualizar el producto, manteniendo los valores existentes si no se pasa un nuevo valor
+      queryText = `UPDATE products SET 
+        product_name = $1, 
+        product_price = $2, 
+        product_description = $3, 
+        product_available = $4, 
+        category_id = $5 
+        WHERE product_id = $6 
+        RETURNING *`;
+        
+    //Esta parte se hace con el fin de que no quede NULL al momento de actualizar un producto y no se incluya uno de los parametros en el cuerpo de la solicitud
+      const result = await query(queryText, [
+        product_name || productExists.rows[0].product_name,  // Si no se pasa un valor, se mantiene el original
+        product_price || productExists.rows[0].product_price,
+        product_description || productExists.rows[0].product_description,
+        product_available || productExists.rows[0].product_available,
+        category_id || productExists.rows[0].category_id,
+        id,
+      ]);
+  
+      res.status(200).json(result.rows[0]); // Respondemos con el producto actualizado
+    } catch (err) {
+      next(err); // Pasamos el error al middleware de manejo de errores
     }
-
-    res.status(200).json(result.rows[0]);
-  } catch (err) {
-    next(err);
-  }
-});
+  });
+  
 
 // DELETE /products/:id: Delete a product.
 productsRoutes.delete("/:id", async (req, res, next) => {
