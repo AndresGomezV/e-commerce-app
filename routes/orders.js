@@ -162,14 +162,14 @@ ordersRoutes.put("/:id", async (req, res, next) => {
 ordersRoutes.post("/:id/checkout", async (req, res, next) => {
     try {
         const { id } = req.params;
-        const customer_id = req.user.id;
+        
 
         // Validar si la orden existe (carrito)
-        let queryText = "SELECT * FROM orders WHERE order_id = $1 AND customer_id = $2";
-        const orderExists = await query(queryText, [id, customer_id]);
+        let queryText = "SELECT * FROM orders WHERE order_id = $1";
+        const orderExists = await query(queryText, [id]);
 
         if (orderExists.rows.length === 0) {
-            return res.status(404).json({ message: "Order not found or does not belong to this user" });
+            return res.status(404).json({ message: "Order not found or does not belong to the user" });
         }
 
         const order = orderExists.rows[0];
@@ -185,7 +185,7 @@ ordersRoutes.post("/:id/checkout", async (req, res, next) => {
         const orderItemsResult = await query(queryText, [id]);
 
         for (const item of orderItemsResult.rows) {
-            if (item.product_available === false) {
+            if (!item.product_available) {
                 return res.status(400).json({ message: `Insufficient stock for product with id ${item.product_id}` });
             }
         }
