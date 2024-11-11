@@ -10,9 +10,19 @@ function errorHandler(err, req, res, next) {
 
 //Routes
 
-// GET /orders: Retrieve all orders.
+// GET /orders: Retrieve all orders from an specific customer
 ordersRoutes.get("/", async (req, res, next) => {
   try {
+    const customer_id = req.user.id; // Suponiendo que el ID del cliente está en req.user.id después de autenticación (con JWT)
+    let queryText = "SELECT * FROM orders WHERE customer_id = $1";
+
+    const result = await query(queryText, [customer_id]);
+
+    if (result.rows.length === 0) {
+        return res.status(404).json({ message: `No orders for customer with id: ${customer_id}`})
+    }
+
+    res.status(200).json(result.rows);
   } catch (err) {
     next(err);
   }
@@ -21,6 +31,17 @@ ordersRoutes.get("/", async (req, res, next) => {
 // GET /orders/:id: Retrieve a specific order.
 ordersRoutes.get("/:id", async (req, res, next) => {
   try {
+    const { id } = req.params;
+
+    let queryText = "SELECT * FROM orders WHERE order_id = $1";
+
+    const result = await query(queryText, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.status(200).json(result.rows[0]);
   } catch (err) {
     next(err);
   }
@@ -75,21 +96,62 @@ ordersRoutes.post("/", async (req, res, next) => {
   }
 });
 
-// PUT /orders/:id: Update an existing order (e.g., change status).
+// PUT /orders/:id: Update an existing order (e.g., change status or items).
 ordersRoutes.put("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
     const { order_status, items } = req.body;
 
-    let queryText = 'SELECT * FROM orders WHERE order_id = $1';
+    // Verificar si la orden existe
+    let queryText = "SELECT * FROM orders WHERE order_id = $1";
     const orderExists = await query(queryText, [id]);
 
     if (orderExists.rows.length === 0) {
-        return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: "Order not found" });
     }
 
-    queryText = ''
+    // Actualizar el status de la orden
+    let updatedOrder = orderExists.rows[0]; // Para almacenar la orden actualizada
+    if (order_status) {
+      queryText =
+        "UPDATE orders SET order_status = $1 WHERE order_id = $2 RETURNING *";
+      const result = await query(queryText, [order_status, id]);
+      updatedOrder = result.rows[0]; // Actualizamos con la orden modificada
+    }
 
+    // Actualizar los items de la orden si `items` fue proporcionado
+    if (items && items.length > 0) {
+      // Primero, eliminar los items actuales para reemplazarlos
+      queryText = "DELETE FROM order_items WHERE order_id = $1";
+      await query(queryText, [id]);
+
+      // Insertar los nuevos items
+      const orderItemsValues = items.map((item) => [
+        id, // Usamos el `id` directamente aquí
+        item.product_id,
+        item.items_quantity,
+        item.order_price,
+      ]);
+
+      const queryOrderItemsText = `
+          INSERT INTO order_items (order_id, product_id, items_quantity, order_price)
+          VALUES ($1, $2, $3, $4)
+          RETURNING *`;
+
+      const insertedItems = [];
+      for (const values of orderItemsValues) {
+        const result = await query(queryOrderItemsText, values);
+        insertedItems.push(result.rows[0]);
+      }
+
+      // Incluir los items insertados en la respuesta
+      updatedOrder.items = insertedItems;
+    }
+
+    res.status(200).json({
+      message: "Order updated successfully",
+      order: updatedOrder, // Devolvemos la orden actualizada
+    });
   } catch (err) {
     next(err);
   }
